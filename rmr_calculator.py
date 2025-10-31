@@ -18,7 +18,7 @@ class Person:
     sex: str  # 'male' or 'female'
     body_fat_pct: Optional[float] = None
     lbm_kg: Optional[float] = None
-    st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
+
 
 def mifflin_st_jeor(p: Person) -> float:
     base = 10*p.weight_kg + 6.25*p.height_cm - 5*p.age_years

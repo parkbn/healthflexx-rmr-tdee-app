@@ -22,8 +22,8 @@ with st.sidebar:
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)
     use_bfp = st.checkbox("Use body fat %", value=True)
     lbm = st.number_input("LBM kg (optional; overrides body fat % if used)", min_value=0.0, max_value=200.0, value=0.0, step=0.5)
-    use_lbm = st.checkbox("Use LBM override", value=False)
-    st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
+    st.number_input("Lean Body Mass (kg)", value=lbm, help="LBM = body weight minus fat mass. Used in Katch–McArdle and Cunningham equations.")
+    ##st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
 
     st.subheader("TDEE Settings")
     activity = st.selectbox("Activity level (PAL)", list(rc.ACTIVITY_LEVELS.keys()), index=list(rc.ACTIVITY_LEVELS.keys()).index("moderate"))

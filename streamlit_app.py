@@ -82,6 +82,17 @@ tdee = rc.estimate_tdee(
     tef_pct=(tef_pct / 100.0),
 )
 st.metric("TDEE (kcal/day)", f"{tdee:.0f}" if tdee is not None else "—")
+# Show how TDEE was computed
+pal_val = rc.ACTIVITY_LEVELS.get(activity, 1.55)
+tef_note = "TEF included" if include_tef else "no TEF"
+pretty_method = method.replace("_", " ")
+
+st.caption(
+    f"Computed as RMR(**{pretty_method}**) × PAL(**{activity} ≈ {pal_val:.2f}**)"
+    + (f" × (1 + {tef_pct/100:.2f} TEF)" if include_tef else "")
+    + "."
+)
+
 
 col1, col2 = st.columns([2, 3])
 with col1:

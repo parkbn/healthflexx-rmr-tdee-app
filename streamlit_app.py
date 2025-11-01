@@ -64,6 +64,34 @@ with st.sidebar:
     # show the normalized cm so users see what the app is using
     st.caption(f"Using height: **{height:.1f} cm**")
 
+    # --- Weight input with kg/lb parsing ---
+weight_raw = st.text_input(
+    "Weight",
+    value="85",
+    help="Enter weight in kg or lb (e.g., 85, 180 lb).",
+)
+
+def parse_weight_to_kg(s: str) -> float:
+    s = (s or "").strip().lower()
+    if "lb" in s or "lbs" in s or "pound" in s:
+        try:
+            x = float(s.replace("lbs", "").replace("lb", "").replace("pounds", "").strip())
+            return round(x * 0.453592, 1)
+        except Exception:
+            return 85.0
+    if "kg" in s:
+        try:
+            return round(float(s.replace("kg", "").strip()), 1)
+        except Exception:
+            return 85.0
+    try:
+        return round(float(s), 1)
+    except Exception:
+        return 85.0
+
+weight = parse_weight_to_kg(weight_raw)
+st.caption(f"Using weight: **{weight:.1f} kg**")
+
     weight = st.number_input("Weight (kg)", min_value=30.0, max_value=250.0, value=85.0, step=0.5)
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)
     use_bfp = st.checkbox("Use body fat %", value=True)

@@ -89,8 +89,8 @@ def parse_weight_to_kg(s: str) -> float:
     except Exception:
         return 85.0
 
-weight = parse_weight_to_kg(weight_raw)
-st.caption(f"Using weight: **{weight:.1f} kg**")
+    weight = parse_weight_to_kg(weight_raw)
+    st.caption(f"Using weight: **{weight:.1f} kg**")
 
     weight = st.number_input("Weight (kg)", min_value=30.0, max_value=250.0, value=85.0, step=0.5)
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)

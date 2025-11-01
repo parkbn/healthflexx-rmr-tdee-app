@@ -17,7 +17,31 @@ with st.sidebar:
     st.header("Inputs")
     sex = st.selectbox("Sex", ["male", "female"], index=0)
     age = st.number_input("Age (years)", min_value=10, max_value=100, value=45, step=1)
-    height = st.number_input("Height (cm)", min_value=100, max_value=230, value=180, step=1)
+    
+    ##height = st.number_input("Height (cm)", min_value=100, max_value=230, value=180, step=1)
+# Height input with optional "in" conversion
+height_input = st.text_input(
+    "Height",
+    value="180",
+    help="Enter height in cm or inches (e.g., 70 in).",
+)
+
+# Detect if user included inches
+if "in" in height_input.lower():
+    try:
+        height_val = float(height_input.lower().replace("in", "").strip())
+        height = round(height_val * 2.54, 1)
+        st.caption(f"Converted: {height_val:.1f} in = **{height:.1f} cm**")
+    except ValueError:
+        height = 180.0
+        st.warning("Could not parse inches value — defaulted to 180 cm.")
+else:
+    try:
+        height = float(height_input)
+    except ValueError:
+        height = 180.0
+        st.warning("Please enter a numeric height (in cm or inches).")
+    
     weight = st.number_input("Weight (kg)", min_value=30.0, max_value=250.0, value=85.0, step=0.5)
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)
     use_bfp = st.checkbox("Use body fat %", value=True)

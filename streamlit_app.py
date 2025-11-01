@@ -42,7 +42,7 @@ with st.sidebar:
             help="If you know your Lean Body Mass directly, enter it here.",
         )
 
-    st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
+    ##st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
 
     st.subheader("TDEE Settings")
     activity = st.selectbox(

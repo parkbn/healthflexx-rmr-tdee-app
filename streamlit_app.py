@@ -127,7 +127,12 @@ with st.sidebar:
     )
     include_tef = st.checkbox("Include TEF", value=False)
     tef_pct = st.slider("TEF %", 0.0, 30.0, 10.0, 1.0)
-
+    # Sidebar warning for LBM-based methods without LBM/BFP
+    if method in ["Katch_McArdle", "Cunningham"] and (not use_bfp) and (not lbm_value or lbm_value <= 0):
+        st.warning(
+            "Katch–McArdle and Cunningham need **Lean Body Mass (LBM)**.\n"
+            "Turn on **Body fat %** (auto-calculates LBM) or enter **LBM (kg)**."
+        )
 
 # -------- Build Person safely (no undefined vars) --------
 kwargs = dict(weight_kg=weight, height_cm=height, age_years=int(age), sex=sex)

@@ -15,44 +15,66 @@ st.caption("Mifflin–St Jeor • Revised Harris–Benedict • Katch–McArdle 
 
 with st.sidebar:
     st.header("Inputs")
+
     sex = st.selectbox("Sex", ["male", "female"], index=0)
     age = st.number_input("Age (years)", min_value=10, max_value=100, value=45, step=1)
-    
-    ##height = st.number_input("Height (cm)", min_value=100, max_value=230, value=180, step=1)
-# Height input with optional "in" conversion
-height_input = st.text_input(
-    "Height",
-    value="180",
-    help="Enter height in cm or inches (e.g., 70 in).",
-)
 
-# Detect if user included inches
-if "in" in height_input.lower():
-    try:
-        height_val = float(height_input.lower().replace("in", "").strip())
-        height = round(height_val * 2.54, 1)
-        st.caption(f"Converted: {height_val:.1f} in = **{height:.1f} cm**")
-    except ValueError:
-        height = 180.0
-        st.warning("Could not parse inches value — defaulted to 180 cm.")
-else:
-    try:
-        height = float(height_input)
-    except ValueError:
-        height = 180.0
-        st.warning("Please enter a numeric height (in cm or inches).")
-    
+    # --- Height input with flexible parsing ---
+    height_raw = st.text_input(
+        "Height",
+        value="180",
+        help="Enter cm (e.g., 180), inches (e.g., 70 in), or feet/inches (e.g., 5'11\").",
+    )
+
+    def parse_height_to_cm(s: str) -> float:
+        s = (s or "").strip().lower()
+        # feet/inches like 5'11" or 5 ft 11 in
+        if "'" in s or "ft" in s:
+            # normalize separators
+            t = s.replace("ft", "'").replace("feet", "'").replace(" ", "")
+            # split on '
+            try:
+                parts = t.split("'")
+                ft = float(parts[0]) if parts[0] else 0.0
+                inch_str = parts[1] if len(parts) > 1 else "0"
+                inch = float(inch_str.replace('"', "").replace("in", "").strip() or 0)
+                return round((ft * 12.0 + inch) * 2.54, 1)
+            except Exception:
+                return 180.0
+        # explicit inches (e.g., "70 in", '70"', or 70in)
+        if "in" in s or '"' in s:
+            try:
+                x = s.replace('"', "").replace("in", "").strip()
+                return round(float(x) * 2.54, 1)
+            except Exception:
+                return 180.0
+        # explicit centimeters
+        if "cm" in s:
+            try:
+                return round(float(s.replace("cm", "").strip()), 1)
+            except Exception:
+                return 180.0
+        # plain number: assume cm
+        try:
+            return round(float(s), 1)
+        except Exception:
+            return 180.0
+
+    height = parse_height_to_cm(height_raw)
+    # show the normalized cm so users see what the app is using
+    st.caption(f"Using height: **{height:.1f} cm**")
+
     weight = st.number_input("Weight (kg)", min_value=30.0, max_value=250.0, value=85.0, step=0.5)
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)
     use_bfp = st.checkbox("Use body fat %", value=True)
 
     # LBM: auto-calc when using BFP; manual entry otherwise
     if use_bfp:
-        lbm_calc = weight * (1 - bfp / 100)  # auto calculated
+        lbm_calc = weight * (1 - bfp / 100.0)
         st.number_input(
             "Lean Body Mass (kg)",
-            value=float(lbm_calc),
-            help="LBM = body weight minus fat mass (auto-calculated). Used in Katch–McArdle and Cunningham equations.",
+            value=float(round(lbm_calc, 1)),
+            help="LBM = body weight minus fat mass (auto-calculated). Used in Katch–McArdle and Cunningham.",
             disabled=True,
         )
         lbm_value = float(lbm_calc)
@@ -65,8 +87,6 @@ else:
             step=0.5,
             help="If you know your Lean Body Mass directly, enter it here.",
         )
-
-    ##st.info("**LBM (Lean Body Mass)** = body weight minus fat mass. Used in some equations like Katch–McArdle and Cunningham.")
 
     st.subheader("TDEE Settings")
     activity = st.selectbox(
@@ -81,6 +101,7 @@ else:
     )
     include_tef = st.checkbox("Include TEF", value=False)
     tef_pct = st.slider("TEF %", 0.0, 30.0, 10.0, 1.0)
+
 
 # -------- Build Person safely (no undefined vars) --------
 kwargs = dict(weight_kg=weight, height_cm=height, age_years=int(age), sex=sex)

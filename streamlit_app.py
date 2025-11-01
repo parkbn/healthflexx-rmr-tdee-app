@@ -19,7 +19,7 @@ with st.sidebar:
     sex = st.selectbox("Sex", ["male", "female"], index=0)
     age = st.number_input("Age (years)", min_value=10, max_value=100, value=45, step=1)
 
-    # --- Height input with flexible parsing ---
+    # --- Height input with flexible parsing (cm, in, ft'in") ---
     height_raw = st.text_input(
         "Height",
         value="180",
@@ -28,11 +28,10 @@ with st.sidebar:
 
     def parse_height_to_cm(s: str) -> float:
         s = (s or "").strip().lower()
-        # feet/inches like 5'11" or 5 ft 11 in
+        # feet/inches like 5'11", 5 ft 11 in
         if "'" in s or "ft" in s:
-            # normalize separators
-            t = s.replace("ft", "'").replace("feet", "'").replace(" ", "")
-            # split on '
+            t = s.replace("feet", "ft").replace(" ", "")
+            t = t.replace("ft", "'")
             try:
                 parts = t.split("'")
                 ft = float(parts[0]) if parts[0] else 0.0
@@ -41,62 +40,60 @@ with st.sidebar:
                 return round((ft * 12.0 + inch) * 2.54, 1)
             except Exception:
                 return 180.0
-        # explicit inches (e.g., "70 in", '70"', or 70in)
+        # explicit inches (70 in, 70", 70in)
         if "in" in s or '"' in s:
             try:
                 x = s.replace('"', "").replace("in", "").strip()
                 return round(float(x) * 2.54, 1)
             except Exception:
                 return 180.0
-        # explicit centimeters
+        # explicit centimeters (180 cm)
         if "cm" in s:
             try:
                 return round(float(s.replace("cm", "").strip()), 1)
             except Exception:
                 return 180.0
-        # plain number: assume cm
+        # plain number -> assume cm
         try:
             return round(float(s), 1)
         except Exception:
             return 180.0
 
     height = parse_height_to_cm(height_raw)
-    # show the normalized cm so users see what the app is using
     st.caption(f"Using height: **{height:.1f} cm**")
 
     # --- Weight input with kg/lb parsing ---
-weight_raw = st.text_input(
-    "Weight",
-    value="85",
-    help="Enter weight in kg or lb (e.g., 85, 180 lb).",
-)
+    weight_raw = st.text_input(
+        "Weight",
+        value="85",
+        help="Enter weight in kg or lb (e.g., 85, 180 lb).",
+    )
 
-def parse_weight_to_kg(s: str) -> float:
-    s = (s or "").strip().lower()
-    if "lb" in s or "lbs" in s or "pound" in s:
+    def parse_weight_to_kg(s: str) -> float:
+        s = (s or "").strip().lower()
+        if "lb" in s or "lbs" in s or "pound" in s:
+            try:
+                x = float(s.replace("pounds", "").replace("pound", "").replace("lbs", "").replace("lb", "").strip())
+                return round(x * 0.45359237, 1)
+            except Exception:
+                return 85.0
+        if "kg" in s:
+            try:
+                return round(float(s.replace("kg", "").strip()), 1)
+            except Exception:
+                return 85.0
         try:
-            x = float(s.replace("lbs", "").replace("lb", "").replace("pounds", "").strip())
-            return round(x * 0.453592, 1)
+            return round(float(s), 1)  # assume kg
         except Exception:
             return 85.0
-    if "kg" in s:
-        try:
-            return round(float(s.replace("kg", "").strip()), 1)
-        except Exception:
-            return 85.0
-    try:
-        return round(float(s), 1)
-    except Exception:
-        return 85.0
 
     weight = parse_weight_to_kg(weight_raw)
     st.caption(f"Using weight: **{weight:.1f} kg**")
 
-    weight = st.number_input("Weight (kg)", min_value=30.0, max_value=250.0, value=85.0, step=0.5)
+    # --- Body fat & LBM ---
     bfp = st.number_input("Body fat % (optional)", min_value=0.0, max_value=80.0, value=18.0, step=0.5)
     use_bfp = st.checkbox("Use body fat %", value=True)
 
-    # LBM: auto-calc when using BFP; manual entry otherwise
     if use_bfp:
         lbm_calc = weight * (1 - bfp / 100.0)
         st.number_input(
@@ -116,6 +113,7 @@ def parse_weight_to_kg(s: str) -> float:
             help="If you know your Lean Body Mass directly, enter it here.",
         )
 
+    # --- TDEE settings ---
     st.subheader("TDEE Settings")
     activity = st.selectbox(
         "Activity level (PAL)",
